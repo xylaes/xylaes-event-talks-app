@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="View, search, filter, and share Google Cloud BigQuery release notes. Get instant updates and tweet about new features easily.">
+    <title>BigQuery Release Notes Hub</title>
+    <!-- Google Fonts: Inter and Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation (Desktop) / Header (Mobile) -->
+        <header class="app-header">
+            <div class="logo-container">
+                <div class="logo-icon">
+                    <i class="fa-solid fa-database animate-pulse"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>BigQuery Releases</h1>
+                    <span class="sub-text">Release Notes Tracker</span>
+                </div>
+            </div>
+            
+            <!-- Cache info & Action Center -->
+            <div class="action-center">
+                <div class="cache-status" id="cacheStatusContainer">
+                    <i class="fa-regular fa-clock"></i>
+                    <span id="lastUpdatedTime">Loading...</span>
+                </div>
+                <button id="refreshBtn" class="btn btn-primary" title="Refresh Release Notes">
+                    <i id="refreshIcon" class="fa-solid fa-rotate"></i>
+                    <span>Refresh</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Stats and Metric Overview Row -->
+        <section class="metrics-container" aria-label="Release Statistics">
+            <div class="metric-card active-filter-all" id="filterCardAll">
+                <div class="metric-content">
+                    <span class="metric-title">Total Updates</span>
+                    <span class="metric-value" id="countAll">0</span>
+                </div>
+                <div class="metric-icon bg-all">
+                    <i class="fa-solid fa-list"></i>
+                </div>
+            </div>
+            
+            <div class="metric-card" id="filterCardFeature">
+                <div class="metric-content">
+                    <span class="metric-title">Features</span>
+                    <span class="metric-value" id="countFeature">0</span>
+                </div>
+                <div class="metric-icon bg-feature">
+                    <i class="fa-solid fa-star"></i>
+                </div>
+            </div>
+
+            <div class="metric-card" id="filterCardChange">
+                <div class="metric-content">
+                    <span class="metric-title">Changes</span>
+                    <span class="metric-value" id="countChange">0</span>
+                </div>
+                <div class="metric-icon bg-change">
+                    <i class="fa-solid fa-sliders"></i>
+                </div>
+            </div>
+
+            <div class="metric-card" id="filterCardDeprecation">
+                <div class="metric-content">
+                    <span class="metric-title">Deprecations</span>
+                    <span class="metric-value" id="countDeprecation">0</span>
+                </div>
+                <div class="metric-icon bg-deprecation">
+                    <i class="fa-solid fa-ban"></i>
+                </div>
+            </div>
+
+            <div class="metric-card" id="filterCardIssue">
+                <div class="metric-content">
+                    <span class="metric-title">Issues & Fixes</span>
+                    <span class="metric-value" id="countIssue">0</span>
+                </div>
+                <div class="metric-icon bg-issue">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Workspace Area -->
+        <main class="main-content">
+            <!-- Left Panel: Search, Filter, and Release List -->
+            <section class="list-section" aria-label="Release Notes List">
+                <div class="search-bar-container">
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                    <input type="text" id="searchInput" placeholder="Search release notes by keywords (e.g. Gemini, SQL, table)..." aria-label="Search release notes">
+                    <button id="clearSearchBtn" class="clear-search-btn" style="display: none;" title="Clear search">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                
+                <div class="active-filters-row" id="activeFiltersRow" style="display: none;">
+                    <span class="filter-label">Active filters:</span>
+                    <div class="filters-badges" id="activeFiltersBadges">
+                        <!-- Dynamic badges here -->
+                    </div>
+                    <button class="btn-link" id="clearAllFiltersBtn">Clear all</button>
+                </div>
+
+                <!-- Release Cards List -->
+                <div class="cards-list-wrapper" id="cardsListWrapper">
+                    <div class="loading-state" id="listLoadingState">
+                        <i class="fa-solid fa-spinner fa-spin loading-spinner"></i>
+                        <p>Fetching the latest BigQuery release notes...</p>
+                    </div>
+                    <div class="error-state" id="listErrorState" style="display: none;">
+                        <i class="fa-solid fa-circle-exclamation error-icon"></i>
+                        <p id="listErrorMessage">An error occurred while fetching updates.</p>
+                        <button class="btn btn-secondary btn-sm" id="retryFetchBtn">Try Again</button>
+                    </div>
+                    <div class="empty-state" id="listEmptyState" style="display: none;">
+                        <i class="fa-regular fa-folder-open empty-icon"></i>
+                        <p>No release notes match your search or filter criteria.</p>
+                        <button class="btn btn-secondary btn-sm" id="resetFiltersBtn">Reset Filters</button>
+                    </div>
+                    <div class="cards-container" id="cardsContainer" style="display: none;">
+                        <!-- Dynamically populated release cards -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Panel: Selection Detail & Twitter Integrator -->
+            <section class="detail-section" aria-label="Release Details and Tweeter" id="detailSection">
+                <div class="no-selection-state" id="noSelectionState">
+                    <div class="no-selection-graphic">
+                        <i class="fa-solid fa-arrow-left arrow-indicator"></i>
+                        <i class="fa-solid fa-envelope-open-text main-graphic-icon"></i>
+                    </div>
+                    <h2>No Update Selected</h2>
+                    <p>Select a release note from the list on the left to view detailed information, access documentation, or tweet about it.</p>
+                </div>
+
+                <div class="detail-content-container" id="detailContentContainer" style="display: none;">
+                    <!-- Top header card for selection -->
+                    <div class="detail-card header-card">
+                        <div class="detail-header-meta">
+                            <span class="detail-date" id="detailDate">June 15, 2026</span>
+                            <span class="badge" id="detailTypeBadge">Feature</span>
+                        </div>
+                        <h2 class="detail-title" id="detailTitle">BigQuery Update</h2>
+                        <a id="detailDocLink" href="#" target="_blank" rel="noopener noreferrer" class="doc-link">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i> View in Official Docs
+                        </a>
+                    </div>
+
+                    <!-- Description Card -->
+                    <div class="detail-card body-card">
+                        <h3>Update Description</h3>
+                        <div class="html-renderer" id="detailHtmlContent">
+                            <!-- Raw HTML from feed is rendered safely here -->
+                        </div>
+                    </div>
+
+                    <!-- Tweet Composer Card -->
+                    <div class="detail-card tweet-composer-card">
+                        <div class="card-header-with-icon">
+                            <div class="header-icon-label">
+                                <i class="fa-brands fa-x-twitter"></i>
+                                <h3>Compose & Share Tweet</h3>
+                            </div>
+                            <span class="char-counter" id="tweetCharCounter">0 / 280</span>
+                        </div>
+                        <p class="composer-helper-text">Customize the tweet preview below before sharing it to X (Twitter). The official link will be attached automatically.</p>
+                        
+                        <div class="tweet-textarea-wrapper">
+                            <textarea id="tweetTextarea" rows="4" maxlength="400" placeholder="Write something about this update..."></textarea>
+                        </div>
+                        
+                        <div class="char-limit-bar-container">
+                            <div class="char-limit-bar" id="tweetCharBar"></div>
+                        </div>
+
+                        <div class="tweet-actions">
+                            <button id="suggestTweetBtn" class="btn btn-secondary" title="Regenerate default draft text">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                <span>Reset Draft</span>
+                            </button>
+                            <button id="tweetBtn" class="btn btn-twitter">
+                                <i class="fa-brands fa-x-twitter"></i>
+                                <span>Tweet This Update</span>
+                            </button>
+                        </div>
+                        <div class="tweet-warning" id="tweetWarningMessage" style="display: none;">
+                            <i class="fa-solid fa-triangle-exclamation"></i> Warning: Your tweet exceeds the standard 280-character limit. It might be truncated on Twitter.
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <!-- Custom JavaScript -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
