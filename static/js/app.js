@@ -12,6 +12,7 @@ const state = {
 const el = {
     // Header
     lastUpdatedTime: document.getElementById('lastUpdatedTime'),
+    exportCsvBtn: document.getElementById('exportCsvBtn'),
     refreshBtn: document.getElementById('refreshBtn'),
     refreshIcon: document.getElementById('refreshIcon'),
     
@@ -71,9 +72,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Event Listeners Registration
 function initEventListeners() {
-    // Refresh Button
+    // Refresh & Export Buttons
     el.refreshBtn.addEventListener('click', () => fetchReleases(true));
     el.retryFetchBtn.addEventListener('click', () => fetchReleases(true));
+    el.exportCsvBtn.addEventListener('click', exportReleasesToCsv);
     
     // Search Bar Input
     el.searchInput.addEventListener('input', (e) => {
@@ -356,10 +358,21 @@ function renderCards() {
         card.innerHTML = `
             <div class="card-header">
                 <span class="card-date">${r.date}</span>
-                <span class="badge ${badgeClass}">${r.type}</span>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="badge ${badgeClass}">${r.type}</span>
+                    <button class="card-copy-btn" title="Copy description to clipboard" aria-label="Copy description">
+                        <i class="fa-regular fa-copy"></i>
+                    </button>
+                </div>
             </div>
             <p class="card-preview">${escapeHtml(r.description)}</p>
         `;
+        
+        const copyBtn = card.querySelector('.card-copy-btn');
+        copyBtn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            copyTextToClipboard(r.description, copyBtn);
+        });
         
         card.addEventListener('click', () => selectRelease(r.id));
         el.cardsContainer.appendChild(card);
@@ -496,4 +509,88 @@ function escapeHtml(text) {
         "'": '&#039;'
     };
     return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+}
+
+// Copy text to clipboard utility
+function copyTextToClipboard(text, btnElement) {
+    if (!navigator.clipboard) {
+        // Fallback for older browsers or non-secure contexts
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            showCopySuccess(btnElement);
+        } catch (err) {
+            console.error('Fallback: Oops, unable to copy', err);
+        }
+        document.body.removeChild(textArea);
+        return;
+    }
+    navigator.clipboard.writeText(text).then(() => {
+        showCopySuccess(btnElement);
+    }, (err) => {
+        console.error('Async: Could not copy text: ', err);
+    });
+}
+
+function showCopySuccess(btnElement) {
+    btnElement.classList.add('copied');
+    const icon = btnElement.querySelector('i');
+    icon.className = 'fa-solid fa-check';
+    btnElement.setAttribute('title', 'Copied!');
+    
+    setTimeout(() => {
+        btnElement.classList.remove('copied');
+        icon.className = 'fa-regular fa-copy';
+        btnElement.setAttribute('title', 'Copy description to clipboard');
+    }, 2000);
+}
+
+// Export releases list to CSV
+function exportReleasesToCsv() {
+    if (state.filteredReleases.length === 0) {
+        alert("No release notes available to export.");
+        return;
+    }
+    
+    // CSV headers
+    let csvRows = ['"Date","Category","Description","Link"'];
+    
+    // Add data rows
+    state.filteredReleases.forEach(r => {
+        // Escape double quotes inside text fields
+        const date = r.date.replace(/"/g, '""');
+        const type = r.type.replace(/"/g, '""');
+        const desc = r.description.replace(/"/g, '""');
+        const link = r.link.replace(/"/g, '""');
+        
+        csvRows.push(`"${date}","${type}","${desc}","${link}"`);
+    });
+    
+    const csvContent = csvRows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    
+    // Trigger download
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    
+    // Filename incorporates active filters
+    let filename = 'bigquery_release_notes';
+    if (state.activeTypeFilter !== 'All') {
+        filename += `_${state.activeTypeFilter.toLowerCase()}`;
+    }
+    if (state.searchQuery.trim()) {
+        filename += '_filtered';
+    }
+    filename += '.csv';
+    
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }

@@ -423,6 +423,38 @@ body {
     color: var(--text-secondary);
 }
 
+.card-copy-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 13px;
+    padding: 4px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+    opacity: 0;
+}
+
+.release-card:hover .card-copy-btn {
+    opacity: 1;
+}
+
+.release-card.selected .card-copy-btn {
+    opacity: 1;
+}
+
+.card-copy-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.card-copy-btn.copied {
+    color: var(--color-success) !important;
+}
+
 /* Dynamic badges by type */
 .badge {
     font-size: 11px;
@@ -920,6 +952,10 @@ body {
         overflow-y: visible;
         height: auto;
         padding: 16px;
+    }
+
+    .card-copy-btn {
+        opacity: 1;
     }
 }
 
