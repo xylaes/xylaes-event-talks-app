@@ -964,3 +964,77 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+/* Light Mode Variables Override */
+body.light-mode {
+    --bg-app: #f8fafc;
+    --bg-surface: #ffffff;
+    --bg-surface-elevated: #f1f5f9;
+    --bg-surface-hover: #e2e8f0;
+    
+    --border-color: rgba(15, 23, 42, 0.08);
+    --border-color-hover: rgba(15, 23, 42, 0.16);
+    
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+}
+
+body.light-mode ::-webkit-scrollbar-thumb {
+    background: rgba(15, 23, 42, 0.1);
+}
+
+body.light-mode ::-webkit-scrollbar-thumb:hover {
+    background: rgba(15, 23, 42, 0.2);
+}
+
+body.light-mode .tweet-textarea-wrapper {
+    background: #f8fafc;
+}
+
+body.light-mode .release-card {
+    background: rgba(15, 23, 42, 0.015);
+}
+
+body.light-mode .release-card:hover {
+    background: rgba(15, 23, 42, 0.03);
+}
+
+body.light-mode .release-card.selected {
+    background: rgba(56, 189, 248, 0.08);
+}
+
+body.light-mode #searchInput {
+    background: rgba(15, 23, 42, 0.015);
+}
+
+body.light-mode #searchInput:focus {
+    background: #ffffff;
+}
+
+body.light-mode .detail-card {
+    background: rgba(15, 23, 42, 0.01);
+}
+
+body.light-mode .logo-text h1 {
+    background: linear-gradient(to right, #0f172a, #334155);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+body.light-mode .cache-status {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+body.light-mode .metric-card {
+    background: #ffffff;
+}
+
+body.light-mode .metric-card:hover {
+    background: #f8fafc;
+}
+
+body.light-mode .bg-all {
+    background: rgba(15, 23, 42, 0.04);
+    color: #0f172a;
+}
