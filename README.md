@@ -8,6 +8,9 @@ A modern, responsive, and premium Flask-based web application to track, filter, 
 -   **Dual-Layer Caching & Fallback**: Stores parsed releases in a local cache (`releases_cache.json`) for 1 hour to optimize performance and prevent rate-limiting. A **Refresh** action bypasses the cache to query the feed directly. If Google's feed is down, the server serves the last cached version.
 -   **Category Filter Stats**: Real-time counter metrics for each release category (Features, Changes, Deprecations, Issues) that function as quick toggles to filter the cards list.
 -   **Full-Text Search**: An interactive search bar that indexes date, type, and description strings in real-time.
+-   **Card-Level Clipboard Copy**: Quick-copy text descriptions directly from any release card with active visual checkmark feedback.
+-   **Client-Side CSV Export**: Download the currently filtered list of release notes as a CSV spreadsheet (`Date`, `Category`, `Description`, `Link`) with proper string escaping.
+-   **Sleek Light/Dark Mode Toggle**: Dynamically overrides CSS root variables to switch themes, persisting choices across sessions in `localStorage`.
 -   **Tweet Draft Composer**: Select any update to generate a formatted post draft ready for X (Twitter).
     -   **Dynamic Truncation**: Accounts for Twitter's 280-character limit and URL shortener cost (t.co links cost exactly 23 characters), automatically clipping descriptions so they fit.
     -   **Live Counter & Progress Bar**: Visual helper shifting colors from blue (normal) to amber (warning, >240 chars) and red (overlimit, >280 chars) with button locking.
